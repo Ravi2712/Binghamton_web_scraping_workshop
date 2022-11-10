@@ -1,5 +1,6 @@
 import sys
 import time
+import json
 
 # Selenium imports
 from selenium import webdriver
@@ -16,7 +17,6 @@ from JPHTMLParser import JPHTMLParser
 '''
 Website related functions.
 '''
-
 # Get all posts from Mastodon
 def get_all_posts(bs4_page):
 	return JPHTMLParser.find_doms_by_class(bs4_page, "div", "status__wrapper")
@@ -54,6 +54,9 @@ def get_post_content(bs4_page):
 
 	return pretty_posts
 
+'''
+Selenium functions
+'''
 # Get beautiful-soup HTML instance
 def get_soup_html(driver, url):
 	
@@ -61,7 +64,7 @@ def get_soup_html(driver, url):
 	driver.get(url)
 
 	# check if sleep required
-	time.sleep(5)
+	# time.sleep(5)
 
 	# get html from selenium
 	explore_home = driver.find_element(By.TAG_NAME, "html").get_attribute("innerHTML")
@@ -69,11 +72,18 @@ def get_soup_html(driver, url):
 	# cast to beautifulsoup and return
 	return BeautifulSoup(explore_home, "html.parser")
 
+'''
+Helper functions
+'''
+# Save data as json file
+def save_as_json_file(obj, filename):
+	with open(filename, "w") as f:
+		f.write(json.dumps(obj, indent=4))
+
+
 def main():
 	# capturint output in file
-	# orig_stdout = sys.stdout
-	# f = open('out.html', 'w')
-	sys.stdout = open('out.html', 'w')
+	# sys.stdout = open('out.html', 'w')
 
 	# setup Selenium
 	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -84,13 +94,9 @@ def main():
 	# extract information from html
 	all_posts_bs4 = get_all_posts(explore_soup)
 	all_posts = get_post_content(all_posts_bs4)
-	print(all_posts)
 
-	# Server Configuration and Initialization
-	# w = JPFaktoryWrapper(faktory=config["fk_config"]["url"], queues=[config["fk_config"]["crawler_queue"], config["fk_config"]["s3_upload_queue"]], concurrency=config["fk_config"]["num_workers"])
-	# w.register('thread_page_parser', thread_page_parser)
-	# w.register('thread_s3_uploader', thread_s3_uploader)
-	# w.run()
+	# save file
+	save_as_json_file(all_posts, "universeodon_explore.json")
 
 if __name__ == "__main__":
 	main()
